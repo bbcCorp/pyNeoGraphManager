@@ -3,6 +3,10 @@
 neo4j:
     image: neo4j:4.0          ## we use neo4j v4
     ports:                    ## publish ports to have Web UI
-     - "17474:7474"
+    #- "7473:7473" # used for https
+     - "7474:7474" # used for http
+     - "7687:7687" # used for bolt
+    environment:       
+       NEO4J_AUTH: neo4j/password    
     volumes:                  ## adds folder with login/password
      - ./db/dbms:/data/dbms

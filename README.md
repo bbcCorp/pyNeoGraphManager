@@ -12,15 +12,17 @@ $ docker-compose up neo4j
 
 Browse the database manager
 ```
-http://127.0.0.1:17474/browser/
+http://127.0.0.1:7474/browser/
 ```
-Login with username `neo4j` and password:`password`
+Use the credentials username `neo4j` and password:`password`
+
+Try connecting with bolt settings `bolt://0.0.0.0:7687` and `bolt://localhost:7687`
 
 ## Drivers
 
 * Python
 ```
-$ pip install neo4j
+$ pip install py2neo
 ```
 
 * Dotnet

@@ -1,14 +1,22 @@
 # graphDbPoc
 Testing out Neo4j Graph DB performance for large datasets
 
-
+-------------------------------------------------------------------------------
 ## Steps
+
+### Install Neo4j 
 Pull the latest Neo4j 4.0 Docker image
 
 Start the Neo4j container
 ```
-$ docker-compose up neo4j
+$ docker-compose up -d neo4j
 ```
+
+### Install dependencies
+```
+pip install -r ./pythonApp/requirements.txt
+```
+
 
 Browse the database manager
 ```
@@ -18,19 +26,13 @@ Use the credentials username `neo4j` and password:`password`
 
 Try connecting with bolt settings `bolt://0.0.0.0:7687` and `bolt://localhost:7687`
 
+-------------------------------------------------------------------------------
 ## Drivers
 
-* Python
-```
-$ pip install py2neo
-```
+* Python : `py2neo`
+* Dotnet : `Neo4j.Driver`
+-------------------------------------------------------------------------------
+## References
 
-* Dotnet
-```
-$ dotnet add package Neo4j.Driver --version 4.0.0
-```
-
-References
-
-* []()
+* [Graph Databases for Python Users](https://youtu.be/3JMhX1sT98U)
 * [Neo4j Browser](https://neo4j.com/developer/neo4j-browser/)

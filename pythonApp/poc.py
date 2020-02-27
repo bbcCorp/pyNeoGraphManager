@@ -1,6 +1,6 @@
 from py2neo import Database, Graph, Node, Relationship
 
-db = Database("bolt://localhost:7687")
+db = Database("bolt://0.0.0.0:7687")
 default_db = Database()
 
 graph = Graph(database=default_db)
@@ -28,6 +28,7 @@ tx.create(coke)
 tx.create(pepsi)
 
 tx.commit()
+print("Created nodes")
 
 # Create Relationships
 tx = graph.begin()
@@ -40,3 +41,4 @@ graph.create(Relationship(coke, "MAKES", cokezero))
 graph.create(Relationship(pepsi, "MAKES", mtdew))
 
 tx.commit()
+print("Created relationships")

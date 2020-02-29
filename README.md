@@ -32,6 +32,15 @@ Try connecting with bolt settings `bolt://0.0.0.0:7687` and `bolt://localhost:76
 * Python : `py2neo`
 * Dotnet : `Neo4j.Driver`
 -------------------------------------------------------------------------------
+## Query
+
+Get a list of person and their drinks
+```
+MATCH (p:Person)-[r:LIKES]->(d:Drink) RETURN p, d LIMIT 25
+```
+
+
+
 ## References
 
 * [Graph Databases for Python Users](https://youtu.be/3JMhX1sT98U)

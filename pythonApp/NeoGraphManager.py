@@ -59,14 +59,14 @@ class NeoGraphManager:
         return result
 
     ###########################################################################
-    def getNode(self, nodeLabel, property, value):
+    def getNode(self, nodeLabel: str, property: str, value: str):
         '''
             This method will returns nodes if the node property matches value.
             Returns None if nothing matches.
         '''
         matcher = NodeMatcher(self._graph)
         searchNodes = matcher.match(nodeLabel).where(
-            f"_.{property} = '{value}'")
+            f"_.{property} = {value}")
         return searchNodes
     ###########################################################################
 
@@ -77,6 +77,9 @@ if __name__ == "__main__":
         uri="bolt://127.0.0.1:7687",
         user="neo4j",
         password="password")
+
+    # Delete all previous nodes
+    gm.queryResult(query='MATCH (n) DETACH DELETE n')
 
     print("Creating nodes ... ")
     # Create person nodes
@@ -118,5 +121,8 @@ if __name__ == "__main__":
     gm.createRelationship(
         sourceNode=pepsi, relationship="MAKES", targetNode=mtdew)
 
+
+    n = gm.getNode("PERSON", "name", "'Nicole'")
+    print("Read node: ", n.first())
 ###############################################################################
 ###############################################################################

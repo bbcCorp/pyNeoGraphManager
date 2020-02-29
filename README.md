@@ -5,7 +5,32 @@ Testing out Neo4j Graph DB performance for large datasets
 ## Steps
 
 ### Install Neo4j 
+
+Use the following commands to install neo4j community edition on Ubuntu based distro.
+```
+wget -O - https://debian.neo4j.com/neotechnology.gpg.key | sudo apt-key add -
+echo 'deb https://debian.neo4j.com stable latest' | sudo tee /etc/apt/sources.list.d/neo4j.list
+sudo apt update
+sudo apt install neo4j
+```
+
+If you want to set default database to something other than `neo4j`, you can edit the file `/etc/neo4j/neo4j.conf` and change the following lines
+```
+# The name of the default database
+dbms.default_database=neo4j
+```
+
+To start the service, use the command
+```
+$ sudo service neo4j start
+```
+
+
+### Use Neo4j Docker container
 Pull the latest Neo4j 4.0 Docker image
+```
+$ docker pull neo4j 
+```
 
 Start the Neo4j container
 ```
@@ -39,7 +64,14 @@ Get a list of person and their drinks
 MATCH (p:Person)-[r:LIKES]->(d:Drink) RETURN p, d LIMIT 25
 ```
 
+To get a list with both the relationships
+```
+MATCH (p:Person)-[r1:LIKES]->(d:Drink),(m:Manufacturer)-[r2:MAKES]->(d:Drink) RETURN p,d,m LIMIT 25
+```
 
+```
+MATCH (n) WHERE EXISTS(n.name) RETURN DISTINCT "node" as entity, n.name AS name LIMIT 25 UNION ALL MATCH ()-[r]-() WHERE EXISTS(r.name) RETURN DISTINCT "relationship" AS entity, r.name AS name LIMIT 25
+```
 
 ## References
 

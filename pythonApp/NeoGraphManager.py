@@ -1,30 +1,39 @@
 from py2neo import Database, Graph, Node, Relationship, NodeMatcher, Transaction
 
-
 class NeoGraphManager:
+    '''
+        A class to manage Neo4j object graphs
+        using py2neo library
+    '''
     def __init__(self,
                  uri="bolt://localhost:7687",
                  user="neo4j",
                  password="password",
-                 defaultDb=None):
+                 database=None):
 
-        if not defaultDb:
-            defaultDb = Database()
-
-        self._graph = Graph(uri=uri, auth=(user, password))
+        self._graph = Graph(uri=uri, auth=(user, password), database = database)
 
     ###########################################################################
-    def createNode(self, nodeLabel, node: dict, transaction=None) -> Node:
+    def createNode(self, labels: list, properties: dict, transaction=None) -> Node:
 
-        node = Node(nodeLabel, **node)
+        try:
+            if not labels or len(labels) < 1:
+                raise ValueError("labels needs to contain at least the primary node type")
 
-        if transaction:
-            transaction.create(node)
-        else:
-            # create node within an autocommit transaction
-            self._graph.create(node)
+            node = Node(*labels, **properties)
 
-        return node
+            if transaction:
+                transaction.create(node)
+            else:
+                # create node within an autocommit transaction
+                self._graph.create(node)
+
+            return node
+
+        except Exception as ex:
+            print("Error creating node", ex)
+            raise
+
 
     ###########################################################################
     def createRelationship(self,
@@ -59,70 +68,52 @@ class NeoGraphManager:
         return result
 
     ###########################################################################
-    def getNode(self, nodeLabel: str, property: str, value: str):
+    def getNodes(self, 
+        nodeLabel: str, 
+        property: str, operator: str, value: str,
+        orderByProperty: str = None,
+        nlimit:int=10):
         '''
-            This method will returns nodes if the node property matches value.
-            Returns None if nothing matches.
+            This method will returns list of Nodes if the node property matches value.
+            Returns [] if nothing matches.
+
+            operators : = <> 	>  >= < <= 'STARTS WITH' 'ENDS WITH' 'CONTAINS'
+
+            Refer to: https://py2neo.org/v4/matching.html?highlight=matcher#node-matching
         '''
         matcher = NodeMatcher(self._graph)
-        searchNodes = matcher.match(nodeLabel).where(
-            f"_.{property} = {value}")
+
+        matchQuery = f"_.{property} {operator} {value}"
+
+        if orderByProperty:
+            searchNodes = list(matcher.match(nodeLabel).where(matchQuery).order_by(f"_.{orderByProperty}").limit(nlimit))
+        else:
+            searchNodes = list(matcher.match(nodeLabel).where(matchQuery).limit(nlimit))
+
         return searchNodes
     ###########################################################################
+    def getNodeCount(self, label=None, properties:dict = None):
+        
+        count = 0
+              
+        if label:
+            if properties:
+                count = len(self._graph.nodes.match(label, **properties))
+            else:    
+                count = len(self._graph.nodes.match(label))
+        else:
+            count = len(self._graph.nodes)
+        
+        return count
 
-###############################################################################
-if __name__ == "__main__":
+    ###########################################################################    
+    def deleteAllNodes(self, nodeLabel=None):
+        if nodeLabel:
+            deleteQuery=f'MATCH (n:{nodeLabel}) DETACH DELETE n'
+        else:
+            deleteQuery=f'MATCH (n) DETACH DELETE n'
 
-    gm = NeoGraphManager(
-        uri="bolt://127.0.0.1:7687",
-        user="neo4j",
-        password="password")
+        return self.queryResult(query=deleteQuery)
 
-    # Delete all previous nodes
-    gm.queryResult(query='MATCH (n) DETACH DELETE n')
-
-    print("Creating nodes ... ")
-    # Create person nodes
-    nicole = gm.createNode(nodeLabel="Person", node={"name": "Nicole", "age": 24})
-    drew = gm.createNode(nodeLabel="Person", node={"name": "Drew", "age": 20})
-
-    nCount = gm.queryResult(
-        query='MATCH (n:Person) return count(distinct n)')
-    print(f"Count of Person nodes in db: {nCount}")
-
-    # Create drink nodes
-    mtdew = gm.createNode(nodeLabel="Drink", node={"name": "Mountain Dew", "calories": 9000})
-    cokezero = gm.createNode(nodeLabel="Drink", node={"name": "Coke Zero", "calories": 0})
-
-    nCount = gm.queryResult(query='MATCH (n:Drink) return count(distinct n)')
-    print(f"Count of Drink nodes in db: {nCount}")
-
-    # Create manufacturer nodes
-    coke = gm.createNode(nodeLabel="Manufacturer", node={"name": "Coca Cola"})
-    pepsi = gm.createNode(nodeLabel="Manufacturer", node={"name": "Pepsi"})
-
-    nCount = gm.queryResult(
-        query='MATCH (n:Manufacturer) return count(distinct n)')
-    print(f"Count of Manufacturer nodes in db: {nCount}")
-
-    # Create Relationships
-    print("\n\n Creating relationships ...")
-
-    gm.createRelationship(
-        sourceNode=nicole, relationship="LIKES", targetNode=cokezero)
-    gm.createRelationship(
-        sourceNode=nicole, relationship="LIKES", targetNode=mtdew)
-
-    gm.createRelationship(
-        sourceNode=drew, relationship="LIKES", targetNode=mtdew)
-
-    gm.createRelationship(
-        sourceNode=coke, relationship="MAKES", targetNode=cokezero)
-    gm.createRelationship(
-        sourceNode=pepsi, relationship="MAKES", targetNode=mtdew)
-
-
-    n = gm.getNode("PERSON", "name", "'Nicole'")
-    print("Read node: ", n.first())
 ###############################################################################
 ###############################################################################

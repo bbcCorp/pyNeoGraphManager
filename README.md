@@ -60,17 +60,61 @@ Try connecting with bolt settings `bolt://0.0.0.0:7687` and `bolt://localhost:76
 -------------------------------------------------------------------------------
 ## Query
 
-Get a list of person and their drinks
-```
-MATCH (p:Person)-[r:LIKES]->(d:Drink) RETURN p, d LIMIT 25
+Neo4j [Cipher Query Language](https://neo4j.com/developer/cypher-query-language/) is a query language for Neo4j Graph Database.
+
+Here's a short intro to using CQL:
+
+The following Cypher commands are used on the `system` database to manage multiple databases:
+
+* SHOW DATABASES              : Show the name and status of all the databases.
+* SHOW DEFAULT DATABASE       : Show the name and status of the default database.
+
+
+Select the default database and run the following commands in neo4j browser
+
+Delete any pre-existing nodes if required
+```cypher
+MATCH (n) DETACH DELETE n
 ```
 
-To get a list with both the relationships
-```
-MATCH (p:Person)-[r1:LIKES]->(d:Drink),(m:Manufacturer)-[r2:MAKES]->(d:Drink) RETURN p,d,m LIMIT 25
+* Creating a few nodes of type `Person`
+```cypher
+create (bbc:Person {name: 'BBC'})
 ```
 
+* Read the node
+```cypher
+MATCH (bbc:Person {name: 'BBC'}) RETURN bbc
 ```
+
+* Now we can create a relationship between two Person nodes using the following command
+```cypher
+CREATE (granddad:Person {name: 'Grand Dad', age:60})-[r:PARENT_OF]->(dad:Person {name: 'Dad', age:40})-[r2:PARENT_OF]->(son:Person {name: 'Son', age:5})
+```
+
+Now we will add two additional nodes `Grand Mom` and `Mom` and link it to the existing `Dad` and `Son` nodes
+
+```cypher
+
+CREATE (grandmom:Person {name: 'Grand Mom', age:55})
+CREATE (mom:Person {name: 'Mom', age:38})
+
+MERGE (gm:Person {name: 'Grand Mom'})
+MERGE (d:Person {name: 'Dad'})
+CREATE (gm)-[:PARENT_OF]->(d)
+
+MERGE (m:Person {name: 'Mom'})
+MERGE (s:Person {name: 'Son'})
+CREATE (m)-[:PARENT_OF]->(s)
+```
+That should establish the relationship.
+
+Get a list of person and their relationships
+```cypher
+MATCH (p:Person)-[r:PARENT_OF]->(c:Person) RETURN p, c LIMIT 25
+```
+
+```cypher
 MATCH (n) WHERE EXISTS(n.name) RETURN DISTINCT "node" as entity, n.name AS name LIMIT 25 UNION ALL MATCH ()-[r]-() WHERE EXISTS(r.name) RETURN DISTINCT "relationship" AS entity, r.name AS name LIMIT 25
 ```
 
@@ -80,3 +124,4 @@ MATCH (n) WHERE EXISTS(n.name) RETURN DISTINCT "node" as entity, n.name AS name 
 * [Medium: Py2neo v4: The Next Generation](https://medium.com/neo4j/py2neo-v4-2bedc8afef2)
 * [Graph Databases for Python Users](https://youtu.be/3JMhX1sT98U)
 * [Neo4j Browser](https://neo4j.com/developer/neo4j-browser/)
+* [The Py2neo v4 Handbook](https://py2neo.org/v4/index.html)

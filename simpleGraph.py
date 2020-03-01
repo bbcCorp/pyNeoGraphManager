@@ -1,4 +1,5 @@
 from neoGraphManager import NeoGraphManager
+import logging
 
 ###############################################################################
 def createNodesAndRelationships(gm: NeoGraphManager):
@@ -107,10 +108,25 @@ def fetchNodes(gm: NeoGraphManager):
 
 ###############################################################################
 if __name__ == "__main__":
+
+    logger = logging.getLogger()
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter(
+            '%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+    # To see extensive logging use levl as INFO or DEBUG
+    # logger.setLevel(logging.DEBUG)
+    # logger.setLevel(logging.INFO)
+    logger.setLevel(logging.ERROR)
+    
     gm = NeoGraphManager(
         uri="bolt://127.0.0.1:7687",
         user="neo4j",
-        password="password")
+        password="password",
+        logger=logger
+        )
 
     createNodesAndRelationships(gm)
     fetchNodes(gm)

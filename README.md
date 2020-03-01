@@ -77,5 +77,6 @@ MATCH (n) WHERE EXISTS(n.name) RETURN DISTINCT "node" as entity, n.name AS name 
 -------------------------------------------------------------------------------
 ## References
 
+* [Medium: Py2neo v4: The Next Generation](https://medium.com/neo4j/py2neo-v4-2bedc8afef2)
 * [Graph Databases for Python Users](https://youtu.be/3JMhX1sT98U)
 * [Neo4j Browser](https://neo4j.com/developer/neo4j-browser/)

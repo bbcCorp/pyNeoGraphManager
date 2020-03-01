@@ -1,11 +1,15 @@
+import sys
 import unittest
+from py2neo import Database, Graph, Node, Relationship, NodeMatcher, Transaction, ClientError
 from neoGraphManager import NeoGraphManager
 import uuid
+import logging
 
 class NeoGraphManagerTests(unittest.TestCase):
     '''
         Unit Test class for NeoGraphManager
     '''
+    
     def setUp(self):
         self.gm = NeoGraphManager(
         uri="bolt://127.0.0.1:7687",
@@ -17,7 +21,6 @@ class NeoGraphManagerTests(unittest.TestCase):
 
     def tearDown(self):
         self.gm.deleteAllNodes(nodeLabel=self.primaryTestLabel)
-        self.gm = None
 
     ###########################################################################
     def test_1_Node(self):
@@ -67,7 +70,7 @@ class NeoGraphManagerTests(unittest.TestCase):
 
         self.gm.createRelationship(sourceNode=parentNode, relationship="ParentOf", targetNode=childNode, transaction=tx)
 
-        self.gm.commitTransaction(tx)
+        tx.commit()
 
         # read
         assert self.gm.getNodeCount(label=testlabel) == 2
@@ -117,7 +120,10 @@ class NeoGraphManagerTests(unittest.TestCase):
 
             grandParentNode = parentNode
 
-        self.gm.commitTransaction(tx)
+        tx.commit()
+
+        # create index
+        self.gm.createIndex(nodeLabel=testlabel, field='age')
 
         # read
         assert self.gm.getNodeCount(label=testlabel) == 11
@@ -137,7 +143,52 @@ class NeoGraphManagerTests(unittest.TestCase):
         self.gm.deleteAllNodes(nodeLabel=testlabel)
         assert self.gm.getNodeCount(label=testlabel) == 0
 
+        # drop index
+        self.gm.dropIndex(nodeLabel=testlabel, field='age')
+
+    ###########################################################################
+    @unittest.skip("unittest seems to be hanging on exception")
+    def test_4_UniqueConstraint(self):
+
+        testlabel = f"UnitTest_{self.testRunId}_T4"
+
+        tx = self.gm.startTransaction()
+
+        # create         
+        tnode = self.gm.createNode(transaction=tx,
+            labels=[self.primaryTestLabel, testlabel], 
+            properties={ "name": "Node1", "age": 60})
+        assert tnode != None
+        assert tnode['name'] == 'Node1'
+
+        tnode = self.gm.createNode(transaction=tx,
+            labels=[self.primaryTestLabel, testlabel], 
+            properties={ "name": "Node2", "age": 60})
+        assert tnode != None
+        assert tnode['name'] == 'Node2'
+
+        tx.commit()
+        assert self.gm.getNodeCount(label=testlabel) == 2
+
+        self.gm.createUniqueConstraint(nodeLabel=testlabel, field='name')
+
+        try:            
+            tnode = self.gm.createNode( 
+                    labels=[self.primaryTestLabel, testlabel], 
+                    properties={ "name": "Node1", "age": 55})
+
+        except ClientError as ex:
+                assert ex.message.startswith('ConstraintValidationFailed')            
+
+        except Exception as ex:
+                self.fail('Expected ClientError for failed constraint validation not raised')
+
+        finally:
+            # cleanup
+            self.gm.deleteAllNodes(nodeLabel=testlabel)
+            assert self.gm.getNodeCount(label=testlabel) == 0
+
     ###########################################################################
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(exit=False)

@@ -1,4 +1,4 @@
-from NeoGraphManager import NeoGraphManager
+from neoGraphManager import NeoGraphManager
 
 ###############################################################################
 def createNodesAndRelationships(gm: NeoGraphManager):

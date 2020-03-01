@@ -2,7 +2,7 @@ from py2neo import Database, Graph, Node, Relationship, NodeMatcher, Transaction
 
 class NeoGraphManager:
     '''
-        A class to manage Neo4j object graphs
+        A simple class to manage Neo4j object graphs
         using py2neo library
     '''
     def __init__(self,
@@ -34,7 +34,6 @@ class NeoGraphManager:
             print("Error creating node", ex)
             raise
 
-
     ###########################################################################
     def createRelationship(self,
                            sourceNode: Node,
@@ -51,6 +50,12 @@ class NeoGraphManager:
 
         return rel
 
+
+    ###########################################################################
+    def createIndex(self, nodeLabel:str, field: str):
+        query = f"CREATE INDEX ON :{nodeLabel}({field})"
+        self._graph.run(query)
+        
     ###########################################################################
     def startTransaction(self) -> Transaction:
         tx = self._graph.begin()
@@ -116,4 +121,5 @@ class NeoGraphManager:
         return self.queryResult(query=deleteQuery)
 
 ###############################################################################
+#                           FINISH                                            #
 ###############################################################################

@@ -1,10 +1,13 @@
-# graphDbPoc
-Testing out Neo4j Graph DB performance for large datasets
+# NeoGraphManager
+
+NeoGraphManager is a module to do the most common operations using Neo4j graph db.
+
+Refer to the `simpleGraph.py` or the unit tests on how to use the module.
 
 -------------------------------------------------------------------------------
-## Steps
+## Installation
 
-### Install Neo4j 
+### Install Neo4j Server on Ubuntu
 
 Use the following commands to install neo4j community edition on Ubuntu based distro.
 ```
@@ -25,7 +28,6 @@ To start the service, use the command
 $ sudo service neo4j start
 ```
 
-
 ### Use Neo4j Docker container
 Pull the latest Neo4j 4.0 Docker image
 ```
@@ -39,9 +41,8 @@ $ docker-compose up -d neo4j
 
 ### Install dependencies
 ```
-pip install -r ./pythonApp/requirements.txt
+pip install -r ./requirements.txt
 ```
-
 
 Browse the database manager
 ```
@@ -55,7 +56,7 @@ Try connecting with bolt settings `bolt://0.0.0.0:7687` and `bolt://localhost:76
 ## Drivers
 
 * Python : `py2neo`
-* Dotnet : `Neo4j.Driver`
+
 -------------------------------------------------------------------------------
 ## Query
 
@@ -73,6 +74,7 @@ MATCH (p:Person)-[r1:LIKES]->(d:Drink),(m:Manufacturer)-[r2:MAKES]->(d:Drink) RE
 MATCH (n) WHERE EXISTS(n.name) RETURN DISTINCT "node" as entity, n.name AS name LIMIT 25 UNION ALL MATCH ()-[r]-() WHERE EXISTS(r.name) RETURN DISTINCT "relationship" AS entity, r.name AS name LIMIT 25
 ```
 
+-------------------------------------------------------------------------------
 ## References
 
 * [Graph Databases for Python Users](https://youtu.be/3JMhX1sT98U)

@@ -1,9 +1,11 @@
 import unittest
-from NeoGraphManager import NeoGraphManager
+from neoGraphManager import NeoGraphManager
 import uuid
 
 class NeoGraphManagerTests(unittest.TestCase):
-    
+    '''
+        Unit Test class for NeoGraphManager
+    '''
     def setUp(self):
         self.gm = NeoGraphManager(
         uri="bolt://127.0.0.1:7687",

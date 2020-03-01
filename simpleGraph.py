@@ -1,6 +1,13 @@
 from neoGraphManager import NeoGraphManager
 import logging
 
+'''
+    This is a demo of a simple graph consisting of 3 types of nodes
+    Person, Drink and Manufacturer.
+
+    Nicole and Drew loves drinking MountainDew and CokeZero wile Pepsi and Coke 
+    manufactures them. We create a simple graph to represent this relationship.
+'''
 ###############################################################################
 def createNodesAndRelationships(gm: NeoGraphManager):
     

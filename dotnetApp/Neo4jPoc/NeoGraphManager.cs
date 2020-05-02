@@ -38,9 +38,9 @@ namespace BBC.Neo4j
 
                 IResultCursor cursor = await session.RunAsync(cypherQuery, queryParams);
 
-                await cursor.ConsumeAsync();
+                IResultSummary result = await cursor.ConsumeAsync();
 
-                _logger.LogDebug("Query executed successfully");
+                _logger.LogTrace($"Query executed successfully.");
                 
             }
             catch(Exception ex)
@@ -91,6 +91,94 @@ namespace BBC.Neo4j
 
             return result;
         }
+
+        // Get all records as a List
+        public async Task<List<T>> FetchRecords<T>(Func<IRecord, T> recordProcessor, string cypherQuery, object queryParams=null)
+        {
+            List<T> result = null;
+            IAsyncSession session = _driver.AsyncSession(o => o.WithDatabase(this._database));
+
+            _logger.LogDebug($"Executing query: {cypherQuery}");
+            
+            if(queryParams == null)
+            {
+                queryParams= new {};
+            }
+
+            try
+            {     
+
+                IResultCursor resultCursor = await session.RunAsync(cypherQuery, queryParams);
+
+                result = await resultCursor.ToListAsync(record => recordProcessor(record));
+
+                _logger.LogDebug("Query executed successfully");
+                
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, $"Error executing query. {ex.Message}");
+                throw;
+            }
+            finally
+            {
+                await session.CloseAsync();
+                
+            }
+
+            return result;
+        }
+
+        // Get records as a stream of buffered List
+        public async IAsyncEnumerable<List<T>> FetchRecordsAsStream<T>(
+            Func<IRecord, T> recordProcessor, 
+            string cypherQuery, object queryParams=null, 
+            long bufferSize=100)
+        {
+            long recordsProcessed = 0;
+
+            List<T> resultBuffer = new List<T>();
+            IAsyncSession session = _driver.AsyncSession(o => o.WithDatabase(this._database));
+
+            _logger.LogDebug($"Executing query: {cypherQuery}");
+            
+            if(queryParams == null)
+            {
+                queryParams= new {};
+            }
+
+            try
+            {     
+
+                IResultCursor resultCursor = await session.RunAsync(cypherQuery, queryParams);
+
+                _logger.LogDebug("Reading cursor");
+
+                while (await resultCursor.FetchAsync())
+                {
+                    recordsProcessed += 1;
+
+                    resultBuffer.Add( recordProcessor(resultCursor.Current));
+                    
+                    if(resultBuffer.Count >= bufferSize)
+                    {
+                        _logger.LogDebug($"Records processed: {recordsProcessed} ...");
+                        yield return resultBuffer;
+                        resultBuffer.Clear();
+                    }
+                }
+
+                _logger.LogDebug($"* Total records processed: {recordsProcessed} *");
+                yield return resultBuffer;
+                                            
+            }
+            finally
+            {
+                await session.CloseAsync();
+                
+            }
+        }
+
 
         public void Dispose()
         {
